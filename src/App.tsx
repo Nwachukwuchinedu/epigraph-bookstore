@@ -68,9 +68,11 @@ function App() {
             <DraggableShelf books={[...featuredBooks].reverse()} onAddToCart={handleAddToCart} />
             <BentoGridCategories categories={categories} />
             <PinnedStorySection />
-            <AuthorSpotlight />
-            <QuoteSection />
-            <ServicesSection />
+            <div className="relative z-10 bg-white">
+              <AuthorSpotlight />
+              <QuoteSection />
+              <ServicesSection />
+            </div>
             <Footer />
 
             <AnimatePresence>

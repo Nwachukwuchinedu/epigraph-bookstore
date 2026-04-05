@@ -13,8 +13,8 @@ const AuthorSpotlight: React.FC = () => {
       variants={sectionVariants}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: false, margin: "-100px" }}
-      className="py-32 px-6 bg-white relative"
+      viewport={{ once: true, amount: 0.1 }}
+      className="py-32 px-6 bg-white relative z-10"
     >
       <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16 items-center">
         <div className="lg:col-span-5 relative">
