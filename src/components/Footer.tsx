@@ -1,5 +1,4 @@
 import React from 'react';
-import { ShoppingBag } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (

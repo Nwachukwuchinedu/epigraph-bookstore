@@ -5,7 +5,7 @@ const MarqueeSection: React.FC = () => {
   const baseX = useMotionValue(0);
   const [isHovered, setIsHovered] = useState(false);
   
-  useAnimationFrame((t, delta) => {
+  useAnimationFrame((_t, delta) => {
     let moveBy = (isHovered ? 1 : -1) * 0.05 * delta;
     let newX = baseX.get() + moveBy;
     if (newX <= -50) newX += 50;

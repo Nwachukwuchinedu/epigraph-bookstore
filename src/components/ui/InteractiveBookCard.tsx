@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { Star, ShoppingBag } from 'lucide-react';
 import AbstractCover from './AbstractCover';
 import MagneticButton from './MagneticButton';
