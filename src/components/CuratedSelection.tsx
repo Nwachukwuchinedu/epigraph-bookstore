@@ -37,7 +37,7 @@ const CuratedSelection: React.FC<CuratedSelectionProps> = ({ books, onAddToCart 
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div>
-            <h2 className="text-3xl md:text-4xl font-medium tracking-tight mb-3">Curated Selection</h2>
+             <p className="text-stone-900 text-sm tracking-widest uppercase mb-4 font-semibold">Curated Selection</p>
             <p className="text-stone-500 max-w-lg">Hand-picked volumes that challenge perspectives and inspire creativity.</p>
           </div>
           <button className="text-sm font-medium border-b border-stone-900 pb-1 hover:text-stone-500 hover:border-stone-500 transition-colors flex items-center gap-1 self-start md:self-auto">

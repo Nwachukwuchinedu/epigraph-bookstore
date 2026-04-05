@@ -31,7 +31,7 @@ const AuthorSpotlight: React.FC = () => {
            </div>
         </div>
         <div className="lg:col-span-7 flex flex-col items-start">
-          <div className="text-stone-400 text-sm tracking-widest uppercase mb-6 flex items-center gap-3">
+          <div className="text-stone-500 text-sm tracking-widest uppercase mb-6 flex items-center gap-3 font-semibold">
             <span className="w-8 h-px bg-stone-300"></span>
             Author Spotlight
           </div>
