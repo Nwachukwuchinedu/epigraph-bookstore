@@ -37,8 +37,8 @@ const CuratedSelection: React.FC<CuratedSelectionProps> = ({ books, onAddToCart 
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div>
-             <p className="text-stone-900 text-sm tracking-widest uppercase mb-4 font-semibold">Curated Selection</p>
-            <p className="text-stone-500 max-w-lg">Hand-picked volumes that challenge perspectives and inspire creativity.</p>
+             <p className="text-stone-900 text-sm tracking-[0.2em] font-bold uppercase mb-4 opacity-80">Curated Selection</p>
+             <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-6 leading-[1.1]">Hand-picked volumes that challenge perspectives.</h2>
           </div>
           <button className="text-sm font-medium border-b border-stone-900 pb-1 hover:text-stone-500 hover:border-stone-500 transition-colors flex items-center gap-1 self-start md:self-auto">
             View All Books <ChevronRight size={16} />

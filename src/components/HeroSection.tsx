@@ -42,8 +42,8 @@ const HeroSection: React.FC = () => {
             viewport={{ once: true, amount: 0.1 }}
             className="text-7xl md:text-8xl lg:text-9xl font-medium tracking-tighter leading-[0.9] mb-12"
           >
-            <motion.span variants={staggerItem} className="block">Read</motion.span>
-            <motion.span variants={staggerItem} className="block text-stone-400">deeper.</motion.span>
+            <motion.span variants={staggerItem} className="block text-stone-900">Read</motion.span>
+            <motion.span variants={staggerItem} className="block text-stone-500">deeper.</motion.span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
