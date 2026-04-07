@@ -38,7 +38,7 @@ const AuthorSpotlight: React.FC = () => {
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tighter mb-8 leading-[1.05]">
             Architect of<br/>Modern Silence.
           </h2>
-          <p className="text-lg md:text-xl text-stone-500 mb-10 leading-relaxed max-w-2xl">
+          <p className="text-xl md:text-2xl text-stone-500 mb-10 leading-relaxed max-w-2xl">
             Dive into the mind of Elena Rostova, this month's featured literary voice. Her groundbreaking work dissects the intersection of urban decay and human isolation, beautifully bound in our exclusive collector's edition.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
