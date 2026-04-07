@@ -14,7 +14,6 @@ import CuratedSelection from './components/CuratedSelection';
 import TrendingNow from './components/TrendingNow';
 import DraggableShelf from './components/DraggableShelf';
 import BentoGridCategories from './components/BentoGridCategories';
-import PinnedStorySection from './components/PinnedStorySection';
 import AuthorSpotlight from './components/AuthorSpotlight';
 import QuoteSection from './components/QuoteSection';
 import ServicesSection from './components/ServicesSection';
@@ -67,7 +66,6 @@ function App() {
             <TrendingNow books={featuredBooks} onAddToCart={handleAddToCart} />
             <DraggableShelf books={[...featuredBooks].reverse()} onAddToCart={handleAddToCart} />
             <BentoGridCategories categories={categories} />
-            <PinnedStorySection />
             <div className="relative z-10 bg-white">
               <AuthorSpotlight />
               <QuoteSection />
