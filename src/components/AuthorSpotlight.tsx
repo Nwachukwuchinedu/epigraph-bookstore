@@ -1,57 +1,73 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import SectionHeader from './ui/SectionHeader';
+import authorImg from '../assets/author.avif';
 
 const AuthorSpotlight: React.FC = () => {
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 50 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as any } }
-  };
+  const containerRef = React.useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+  const yParallax = useTransform(scrollYProgress, [0, 1], [40, -40]);
 
   return (
-    <motion.section 
-      id="spotlight"
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.1 }}
-      className="py-32 px-6 bg-white relative z-10"
-    >
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-16 items-center">
-        <div className="lg:col-span-5 relative">
-           <div className="aspect-[3/4] w-full bg-stone-100 rounded-3xl overflow-hidden relative group shadow-sm">
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-300 to-stone-50 mix-blend-multiply"></div>
-              <div className="absolute -left-20 -top-20 w-96 h-96 bg-stone-200 rounded-full blur-3xl opacity-60 group-hover:scale-110 transition-transform duration-1000"></div>
-              <div className="absolute right-0 bottom-0 w-64 h-64 bg-stone-300 rounded-full blur-2xl opacity-50 group-hover:scale-125 transition-transform duration-1000"></div>
-              
-              <div className="absolute inset-0 flex flex-col justify-end p-10 z-10">
-                <p className="text-stone-600 font-serif italic text-2xl md:text-3xl mb-6">"The words bleed into the canvas of reality."</p>
-                <div className="h-px w-12 bg-stone-900 mb-4"></div>
-                <h3 className="text-3xl font-medium tracking-tight text-stone-900">E. Rostova</h3>
-              </div>
-           </div>
-        </div>
-        <div className="lg:col-span-7 flex flex-col items-start">
-          <div className="text-stone-500 text-sm tracking-widest uppercase mb-6 flex items-center gap-3 font-semibold">
-            <span className="w-8 h-px bg-stone-300"></span>
-            Author Spotlight
+    <section ref={containerRef} id="spotlight" className="py-32 lg:py-64 px-6 bg-white relative z-10 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader 
+          eyebrow="Author Spotlight"
+          title="Modern"
+          subtitle="Silence."
+          align="center"
+          className="mb-32 lg:mb-48"
+        />
+
+        <div className="grid lg:grid-cols-12 gap-16 lg:gap-32 items-center">
+          <div className="lg:col-span-6 relative">
+             <div className="aspect-[4/5] w-full bg-stone-100 rounded-[3rem] overflow-hidden relative group shadow-2xl">
+                <motion.img 
+                  src={authorImg} 
+                  alt="Elena Rostova"
+                  style={{ y: yParallax }}
+                  className="absolute inset-0 w-full h-full object-cover grayscale brightness-110 contrast-125 transition-transform duration-1000 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-stone-900/10 mix-blend-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent opacity-60" />
+                
+                <div className="absolute inset-0 flex flex-col justify-end p-12 z-10 translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+                  <p className="text-white/80 font-light italic text-2xl lg:text-3xl mb-8 leading-tight">
+                    &ldquo;The words bleed into the canvas of reality.&rdquo;
+                  </p>
+                  <div className="h-px w-16 bg-white/40 mb-6" />
+                  <h3 className="text-4xl font-medium tracking-tighter text-white">Elena Rostova</h3>
+                </div>
+             </div>
+             
+             {/* Decorative Architectural Elements */}
+             <div className="absolute -right-8 -bottom-8 w-32 h-32 border-r border-b border-stone-200 rounded-br-[3rem] hidden lg:block" />
+             <div className="absolute -left-8 -top-8 w-32 h-32 border-l border-t border-stone-200 rounded-tl-[3rem] hidden lg:block" />
           </div>
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-medium tracking-tighter mb-8 leading-[1.05]">
-            Architect of<br/>Modern Silence.
-          </h2>
-          <p className="text-xl md:text-2xl text-stone-500 mb-10 leading-relaxed max-w-2xl">
-            Dive into the mind of Elena Rostova, this month's featured literary voice. Her groundbreaking work dissects the intersection of urban decay and human isolation, beautifully bound in our exclusive collector's edition.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-             <button className="px-8 py-4 bg-stone-900 text-white rounded-full font-medium hover:bg-stone-800 transition-all hover:shadow-xl hover:-translate-y-1 duration-300">
-               Read Interview
-             </button>
-             <button className="px-8 py-4 bg-white border border-stone-200 text-stone-900 rounded-full font-medium hover:bg-stone-50 transition-colors">
-               View Her Works
-             </button>
+
+          <div className="lg:col-span-6 flex flex-col items-start">
+            <h4 className="text-[10px] tracking-[0.5em] uppercase font-bold text-stone-300 mb-12 flex items-center gap-4">
+              <span className="w-12 h-px bg-stone-100" />
+              The Profile
+            </h4>
+            <p className="text-2xl md:text-4xl text-stone-900 mb-12 leading-[1.15] font-light tracking-tight">
+              A groundbreaking voice dissecting the intersection of <span className="italic text-stone-400">urban decay</span> and human isolation, beautifully bound in our exclusive collector&apos;s edition.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
+               <button className="px-10 py-5 bg-stone-900 text-white rounded-full text-xs font-bold tracking-[0.3em] uppercase hover:bg-stone-800 transition-all hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:-translate-y-1 duration-300">
+                 Read Interview
+               </button>
+               <button className="px-10 py-5 bg-white border border-stone-200 text-stone-900 rounded-full text-xs font-bold tracking-[0.3em] uppercase hover:bg-stone-50 transition-all duration-300">
+                 View Works
+               </button>
+            </div>
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 

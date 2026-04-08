@@ -290,7 +290,7 @@ const BookStackSection: FC = () => {
             <ThreeBookStack scrollProgress={smoothProgress} hoveredCard={hoveredCard} isInView={isInView} />
             
             <div className="absolute top-16 left-16 z-20 pointer-events-none">
-              <h2 className="text-stone-900 text-sm tracking-[0.5em] font-bold uppercase opacity-20">Archives</h2>
+              <h2 className="text-stone-400 text-[10px] tracking-[0.5em] font-bold uppercase">Archives</h2>
               <div className="h-px w-16 bg-stone-200 mt-4 rounded-full" />
             </div>
           </div>
