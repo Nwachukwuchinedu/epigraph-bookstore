@@ -29,7 +29,7 @@ const HeroSection: React.FC = () => {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false }}
+            viewport={{ once: true, amount: 0.1 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-stone-200 bg-white text-xs font-medium tracking-wide uppercase mb-6"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -48,7 +48,7 @@ const HeroSection: React.FC = () => {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false }}
+            viewport={{ once: true, amount: 0.1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
             className="text-lg md:text-xl text-stone-500 max-w-md mb-10 leading-relaxed"
           >

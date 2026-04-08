@@ -1,5 +1,5 @@
 import { useRef, useEffect, type FC, type MutableRefObject } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
+import { motion, useScroll, useSpring, useInView, useTransform } from 'framer-motion';
 import * as THREE from 'three';
 import { Layers, Glasses, BookMarked, Sparkles } from 'lucide-react';
 import { featuredBooks } from '../data/mockData';
@@ -59,11 +59,13 @@ const createBookTexture = (title: string, author: string, color: number) => {
 interface ThreeBookStackProps { 
   scrollProgress: any; 
   hoveredCard: MutableRefObject<boolean>; 
+  isInView: boolean;
 }
 
 // --- THREE.JS SCENE COMPONENT ---
-const ThreeBookStack: FC<ThreeBookStackProps> = ({ scrollProgress, hoveredCard }) => {
+const ThreeBookStack: FC<ThreeBookStackProps> = ({ scrollProgress, hoveredCard, isInView }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -91,10 +93,11 @@ const ThreeBookStack: FC<ThreeBookStackProps> = ({ scrollProgress, hoveredCard }
     camera.position.set(0, 5, 14); 
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: window.innerWidth > 768, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     mountRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     // 2. Lights
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
@@ -117,43 +120,48 @@ const ThreeBookStack: FC<ThreeBookStackProps> = ({ scrollProgress, hoveredCard }
     
     let cumulativeHeight = -1.8; // Lower start point
 
+    // Stagger texture creation to prevent frame drops
     featuredBooks.forEach((book, i) => {
-      const thickness = 0.22 + Math.random() * 0.1;
-      const width = 1.7;
-      const height = 2.5;
+      setTimeout(() => {
+        const thickness = 0.22 + Math.random() * 0.1;
+        const width = 1.7;
+        const height = 2.5;
 
-      const coverTexture = createBookTexture(book.title, book.author, colors[i % colors.length]);
-      const coverMat = new THREE.MeshPhysicalMaterial({ map: coverTexture, roughness: 0.4, metalness: 0.1 });
-      const paperMat = new THREE.MeshPhysicalMaterial({ color: 0xeeeeee, roughness: 0.8 });
+        const coverTexture = createBookTexture(book.title, book.author, colors[i % colors.length]);
+        const coverMat = new THREE.MeshPhysicalMaterial({ map: coverTexture, roughness: 0.4, metalness: 0.1 });
+        const paperMat = new THREE.MeshPhysicalMaterial({ color: 0xeeeeee, roughness: 0.8 });
 
-      // BoxGeometry(x:width, y:height, z:thickness)
-      const geom = new THREE.BoxGeometry(width, height, thickness);
-      const materials = [paperMat, paperMat, paperMat, paperMat, coverMat, coverMat];
+        const geom = new THREE.BoxGeometry(width, height, thickness);
+        const materials = [paperMat, paperMat, paperMat, paperMat, coverMat, coverMat];
 
-      const mesh = new THREE.Mesh(geom, materials);
-      floatGroup.add(mesh);
-      books.push(mesh);
+        const mesh = new THREE.Mesh(geom, materials);
+        floatGroup.add(mesh);
+        books.push(mesh);
 
-      // --- STACKING POSITION (FLAT PILE) ---
-      // We rotate -PI/2 on X. thickness (z) becomes vertical extent.
-      const stackY = cumulativeHeight + thickness / 2;
-      cumulativeHeight += thickness + 0.15; // GENEROS GAP TO PREVENT MERGING
+        const stackY = cumulativeHeight + thickness / 2;
+        cumulativeHeight += thickness + 0.15;
 
-      const angle = (i / featuredBooks.length) * Math.PI * 2;
-      const radius = 5.0;
+        const angle = (i / featuredBooks.length) * Math.PI * 2;
+        const radius = 5.0;
 
-      booksData.push({
-        stackPos: new THREE.Vector3((Math.random() - 0.5) * 0.3, stackY, (Math.random() - 0.5) * 0.3),
-        stackRot: new THREE.Euler(-Math.PI / 2, 0, (Math.random() - 0.5) * 0.4),
-        orbitPos: new THREE.Vector3(Math.cos(angle) * radius, (Math.random() - 0.5) * 6, Math.sin(angle) * radius),
-        orbitRot: new THREE.Euler(Math.random() * Math.PI, angle + Math.PI / 2, Math.random() * Math.PI)
-      });
+        booksData.push({
+          stackPos: new THREE.Vector3((Math.random() - 0.5) * 0.3, stackY, (Math.random() - 0.5) * 0.3),
+          stackRot: new THREE.Euler(-Math.PI / 2, 0, (Math.random() - 0.5) * 0.4),
+          orbitPos: new THREE.Vector3(Math.cos(angle) * radius, (Math.random() - 0.5) * 6, Math.sin(angle) * radius),
+          orbitRot: new THREE.Euler(Math.random() * Math.PI, angle + Math.PI / 2, Math.random() * Math.PI)
+        });
+      }, i * 20); // 20ms stagger
     });
 
     const clock = new THREE.Clock();
     let animId: number;
 
     const animate = () => {
+      if (!isInView) {
+        animId = requestAnimationFrame(animate);
+        return;
+      }
+      
       animId = requestAnimationFrame(animate);
       // Fix: Clamp s to ensure it stays in 0-1 range
       const s = Math.min(Math.max(progressRef.current, 0), 1);
@@ -195,34 +203,47 @@ const ThreeBookStack: FC<ThreeBookStackProps> = ({ scrollProgress, hoveredCard }
       renderer.dispose();
       if (mountRef.current) mountRef.current.innerHTML = '';
     };
-  }, [scrollProgress]);
+  }, [scrollProgress, isInView]);
 
   return <div ref={mountRef} className="w-full h-full relative" />;
 };
 
 // --- BENTO CARD COMPONENT ---
-const BentoCard = ({ title, subtitle, desc, icon: Icon, delay, setHovered }: any) => (
+const BentoCard = ({ title, subtitle, desc, icon: Icon, delay, setHovered, yOffset }: any) => (
   <motion.div
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-100px" }}
-    transition={{ duration: 1.2, delay, ease: [0.16, 1, 0.3, 1] }}
+    style={{ y: yOffset }}
+    initial={{ opacity: 0, x: 20 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 1, delay, ease: [0.16, 1, 0.3, 1] }}
     onMouseEnter={() => setHovered(true)}
     onMouseLeave={() => setHovered(false)}
-    className="group relative overflow-hidden rounded-[2.5rem] bg-white/40 backdrop-blur-xl border border-stone-200/50 p-10 lg:p-14 transition-all duration-700 hover:bg-white/60 hover:shadow-[0_40px_80px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[500px]"
+    className="group relative overflow-hidden rounded-[3rem] bg-white/50 backdrop-blur-2xl border border-white/20 p-12 lg:p-16 transition-all duration-700 hover:bg-white/80 hover:shadow-[0_60px_100px_rgba(0,0,0,0.04)] flex flex-col justify-between min-h-[550px] cursor-none"
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-stone-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+    <div className="absolute inset-0 bg-gradient-to-br from-stone-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
     
     <div className="flex justify-between items-start mb-24 relative z-10">
-      <span className="text-stone-400 text-xs tracking-[0.4em] uppercase font-semibold">{subtitle}</span>
-      <div className="p-5 rounded-full bg-white border border-stone-100 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500 shadow-sm">
-        <Icon size={28} strokeWidth={1.5} />
+      <div className="flex flex-col gap-2">
+        <span className="text-stone-400 text-[10px] tracking-[0.5em] font-bold">{subtitle}</span>
+        <div className="h-0.5 w-8 bg-stone-200 group-hover:w-12 group-hover:bg-stone-900 transition-all duration-700" />
+      </div>
+      <div className="p-6 rounded-2xl bg-white shadow-sm border border-stone-100 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500 transform group-hover:rotate-12">
+        <Icon size={32} strokeWidth={1} />
       </div>
     </div>
     
     <div className="relative z-10">
-      <h3 className="text-4xl lg:text-7xl font-medium tracking-tighter text-stone-900 mb-8 leading-[1]">{title}</h3>
-      <p className="text-stone-500/90 text-2xl leading-relaxed max-w-sm font-light">
+      <h3 className="text-5xl lg:text-8xl font-medium tracking-tighter text-stone-900 mb-10 leading-[0.9] overflow-hidden">
+        <motion.span 
+          initial={{ y: "100%" }}
+          whileInView={{ y: 0 }}
+          transition={{ duration: 0.8, delay: delay + 0.2 }}
+          className="block"
+        >
+          {title}
+        </motion.span>
+      </h3>
+      <p className="text-stone-500/80 text-2xl leading-relaxed max-w-md font-light tracking-tight">
         {desc}
       </p>
     </div>
@@ -242,6 +263,14 @@ const BookStackSection: FC = () => {
   const smoothProgress = useSpring(scrollYProgress, { damping: 50, stiffness: 70 });
   const hoveredCard = useRef(false);
   const setHovered = (val: boolean) => { hoveredCard.current = val; };
+  
+  // Parallax offsets for the Cards
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, -250]);
+  const y3 = useTransform(scrollYProgress, [0, 1], [0, -150]);
+  const y4 = useTransform(scrollYProgress, [0, 1], [0, -400]);
+  
+  const isInView = useInView(containerRef, { margin: "200px" });
 
   return (
     <section 
@@ -257,7 +286,7 @@ const BookStackSection: FC = () => {
           <div className="sticky top-0 h-screen z-0 overflow-hidden bg-stone-50/5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_50%,rgba(250,250,250,0)_0%,rgba(220,220,220,0.3)_100%)] pointer-events-none z-10" />
             
-            <ThreeBookStack scrollProgress={smoothProgress} hoveredCard={hoveredCard} />
+            <ThreeBookStack scrollProgress={smoothProgress} hoveredCard={hoveredCard} isInView={isInView} />
             
             <div className="absolute top-16 left-16 z-20 pointer-events-none">
               <h2 className="text-stone-900 text-sm tracking-[0.5em] font-bold uppercase opacity-20">Archives</h2>
@@ -271,22 +300,43 @@ const BookStackSection: FC = () => {
           <div className="max-w-2xl mx-auto flex flex-col gap-20 lg:gap-40">
             
             <motion.div 
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "0px 0px -100px 0px" }}
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-12"
+              className="mb-12 relative"
             >
-              <h2 className="text-6xl lg:text-[10rem] font-medium tracking-tighter mb-16 leading-[0.85] text-stone-900">
-                Luminous <br/>
-                <span className="italic text-stone-400 font-light selection:text-white">Form.</span>
+              <div className="absolute -left-12 top-0 bottom-0 w-px bg-stone-200 hidden lg:block" />
+              <h2 className="text-6xl lg:text-[12rem] font-medium tracking-tighter mb-16 leading-[0.8] text-stone-900 overflow-hidden">
+                <motion.span 
+                  initial={{ y: "100%" }}
+                  whileInView={{ y: 0 }}
+                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                  className="block"
+                >
+                  Luminous
+                </motion.span>
+                <motion.span 
+                  initial={{ y: "100%" }}
+                  whileInView={{ y: 0 }}
+                  transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="block italic text-stone-400 font-light selection:text-white"
+                >
+                  Form.
+                </motion.span>
               </h2>
-              <p className="text-stone-500 text-3xl max-w-md font-light leading-snug tracking-tight">
-                Simulating the tactile weight of literature through structural deconstruction.
-              </p>
+              <div className="max-w-md">
+                <p className="text-stone-500 text-3xl font-light leading-snug tracking-tight mb-8">
+                  Simulating the tactile weight of literature through structural deconstruction.
+                </p>
+                <div className="flex items-center gap-4 text-xs tracking-[0.3em] uppercase text-stone-300 font-bold">
+                  <span className="w-12 h-px bg-stone-200" />
+                  Scroll to Explore
+                </div>
+              </div>
             </motion.div>
 
-            <div className="flex flex-col gap-16 lg:gap-32">
+            <div className="flex flex-col gap-32 lg:gap-64">
               <BentoCard 
                 title="The Vault"
                 subtitle="01 // Edition"
@@ -294,6 +344,7 @@ const BookStackSection: FC = () => {
                 icon={Layers}
                 delay={0.1}
                 setHovered={setHovered}
+                yOffset={y1}
               />
               <BentoCard 
                 title="Tactility"
@@ -302,6 +353,7 @@ const BookStackSection: FC = () => {
                 icon={Glasses}
                 delay={0.2}
                 setHovered={setHovered}
+                yOffset={y2}
               />
               <BentoCard 
                 title="Volumetric"
@@ -310,6 +362,7 @@ const BookStackSection: FC = () => {
                 icon={Sparkles}
                 delay={0.3}
                 setHovered={setHovered}
+                yOffset={y3}
               />
               <BentoCard 
                 title="Journal"
@@ -318,6 +371,7 @@ const BookStackSection: FC = () => {
                 icon={BookMarked}
                 delay={0.4}
                 setHovered={setHovered}
+                yOffset={y4}
               />
             </div>
             

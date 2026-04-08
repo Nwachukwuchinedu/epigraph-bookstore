@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { motion, useSpring, useScroll, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, BookOpen } from 'lucide-react';
+import { ShoppingBag, BookOpen, Loader2 } from 'lucide-react';
+import { ReactLenis } from 'lenis/react';
 
 // Data
 import { featuredBooks, categories } from './data/mockData';
@@ -10,11 +11,14 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HeroSection from './components/HeroSection';
 import MarqueeSection from './components/MarqueeSection';
-import CuratedSelection from './components/CuratedSelection';
-import TrendingNow from './components/TrendingNow';
-import DraggableShelf from './components/DraggableShelf';
-import BentoGridCategories from './components/BentoGridCategories';
-import BookStackSection from './components/BookStackSection';
+// Lazy-loaded Components for Performance
+const DraggableShelf = lazy(() => import('./components/DraggableShelf'));
+const BookStackSection = lazy(() => import('./components/BookStackSection'));
+const CuratedSelection = lazy(() => import('./components/CuratedSelection'));
+const TrendingNow = lazy(() => import('./components/TrendingNow'));
+const BentoGridCategories = lazy(() => import('./components/BentoGridCategories'));
+
+// Static Components
 import AuthorSpotlight from './components/AuthorSpotlight';
 import QuoteSection from './components/QuoteSection';
 import ServicesSection from './components/ServicesSection';
@@ -42,7 +46,8 @@ function App() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#FAFAFA] text-stone-900 font-sans selection:bg-stone-200">
+    <ReactLenis root options={{ lerp: 0.1, duration: 1.5, smoothWheel: true, syncTouch: true }}>
+      <div className="relative w-full min-h-screen bg-[#FAFAFA] text-stone-900 font-sans selection:bg-stone-200">
       <FilmGrain />
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-stone-900 origin-left z-[100]"
@@ -64,17 +69,26 @@ function App() {
           >
             <HeroSection />
             <MarqueeSection />
-            <CuratedSelection books={featuredBooks} onAddToCart={handleAddToCart} />
-            <TrendingNow books={featuredBooks} onAddToCart={handleAddToCart} />
-            <DraggableShelf books={[...featuredBooks].reverse()} onAddToCart={handleAddToCart} />
-            <BookStackSection />
-            <BentoGridCategories categories={categories} />
-            <div className="relative z-10 bg-white">
-              <AuthorSpotlight />
-              <QuoteSection />
-              <ServicesSection />
-            </div>
-            <Footer />
+           <Suspense fallback={
+              <div className="h-screen w-full flex items-center justify-center bg-stone-50">
+                <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="animate-spin text-stone-300" size={32} />
+                  <p className="text-stone-400 text-sm tracking-widest uppercase font-medium">Curating Experience...</p>
+                </div>
+              </div>
+            }>
+              <CuratedSelection books={featuredBooks} onAddToCart={handleAddToCart} />
+              <TrendingNow books={featuredBooks} onAddToCart={handleAddToCart} />
+              <DraggableShelf books={[...featuredBooks].reverse()} onAddToCart={handleAddToCart} />
+              <BookStackSection />
+              <BentoGridCategories categories={categories} />
+              <div className="relative z-10 bg-white">
+                <AuthorSpotlight />
+                <QuoteSection />
+                <ServicesSection />
+              </div>
+              <Footer />
+            </Suspense>
 
             <AnimatePresence>
               {toastMessage && (
@@ -116,7 +130,8 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </ReactLenis>
   );
 }
 
