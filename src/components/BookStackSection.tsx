@@ -1,6 +1,7 @@
 import { useRef, useEffect, type FC, type MutableRefObject } from 'react';
 import { motion, useScroll, useSpring, useInView, useTransform } from 'framer-motion';
 import * as THREE from 'three';
+import SectionHeader from './ui/SectionHeader';
 import { Layers, Glasses, BookMarked, Sparkles } from 'lucide-react';
 import { featuredBooks } from '../data/mockData';
 
@@ -299,42 +300,25 @@ const BookStackSection: FC = () => {
         <div className="w-full lg:w-1/2 relative z-10 px-6 py-32 lg:px-24 lg:py-80 flex flex-col">
           <div className="max-w-2xl mx-auto flex flex-col gap-20 lg:gap-40">
             
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-              transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-12 relative"
-            >
+            <div className="mb-32 relative">
               <div className="absolute -left-12 top-0 bottom-0 w-px bg-stone-200 hidden lg:block" />
-              <h2 className="text-6xl lg:text-[12rem] font-medium tracking-tighter mb-16 leading-[0.8] text-stone-900 overflow-hidden">
-                <motion.span 
-                  initial={{ y: "100%" }}
-                  whileInView={{ y: 0 }}
-                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                  className="block"
-                >
-                  Luminous
-                </motion.span>
-                <motion.span 
-                  initial={{ y: "100%" }}
-                  whileInView={{ y: 0 }}
-                  transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="block italic text-stone-400 font-light selection:text-white"
-                >
-                  Form.
-                </motion.span>
-              </h2>
-              <div className="max-w-md">
+              <SectionHeader 
+                eyebrow="The Catalog"
+                title="Luminous"
+                subtitle="Form."
+                align="left"
+                className="mb-0 lg:mb-0"
+              />
+              <div className="max-w-md mt-16">
                 <p className="text-stone-500 text-3xl font-light leading-snug tracking-tight mb-8">
                   Simulating the tactile weight of literature through structural deconstruction.
                 </p>
-                <div className="flex items-center gap-4 text-xs tracking-[0.3em] uppercase text-stone-300 font-bold">
+                <div className="flex items-center gap-4 text-[10px] tracking-[0.4em] uppercase text-stone-300 font-bold">
                   <span className="w-12 h-px bg-stone-200" />
                   Scroll to Explore
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             <div className="flex flex-col gap-32 lg:gap-64">
               <BentoCard 

@@ -9,19 +9,6 @@ const HeroSection: React.FC = () => {
   const y2 = useTransform(scrollY, [0, 1000], [0, -200]);
   const y3 = useTransform(scrollY, [0, 1000], [0, -350]);
 
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 }
-    }
-  };
-
-  const staggerItem = {
-    hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as any } }
-  };
-
   return (
     <section id="hero" className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
@@ -35,16 +22,26 @@ const HeroSection: React.FC = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             Spring Collection Live
           </motion.div>
-          <motion.h1 
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.1 }}
-            className="text-7xl md:text-8xl lg:text-9xl font-medium tracking-tighter leading-[0.9] mb-12"
-          >
-            <motion.span variants={staggerItem} className="block text-stone-900">Read</motion.span>
-            <motion.span variants={staggerItem} className="block text-stone-500">deeper.</motion.span>
-          </motion.h1>
+          <h1 className="relative flex flex-col items-start mb-12">
+            <motion.span 
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-8xl md:text-[10rem] lg:text-[15rem] font-medium tracking-tighter leading-[0.7] text-stone-900"
+            >
+              Read
+            </motion.span>
+            <motion.span 
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl md:text-7xl lg:text-9xl font-light italic text-stone-400 tracking-tight"
+            >
+              deeper.
+            </motion.span>
+          </h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

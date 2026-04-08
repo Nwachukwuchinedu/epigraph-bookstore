@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import InteractiveBookCard from './ui/InteractiveBookCard';
+import SectionHeader from './ui/SectionHeader';
 
 interface Book {
   id: number;
@@ -39,15 +40,18 @@ const DraggableShelf: React.FC<DraggableShelfProps> = ({ books, onAddToCart }) =
   }, []);
 
   return (
-    <section id="shelf" className="py-32 bg-stone-100 overflow-hidden relative cursor-grab active:cursor-grabbing">
-      <div className="max-w-7xl mx-auto px-6 mb-16">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-4 text-stone-900">Momentum Shelf</h2>
-            <p className="text-stone-500 max-w-lg text-lg">Fling through our catalog. A physics-based draggable gallery powered by momentum.</p>
-          </div>
-          <div className="flex gap-2">
-            <span className="px-4 py-2 rounded-full border border-stone-300 text-xs font-medium uppercase tracking-widest text-stone-500">Drag to explore</span>
+    <section id="shelf" className="py-32 lg:py-64 bg-stone-100 overflow-hidden relative cursor-grab active:cursor-grabbing">
+      <div className="max-w-7xl mx-auto px-6 mb-24">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+          <SectionHeader 
+            eyebrow="Momentum Shelf"
+            title="The"
+            subtitle="Archives."
+            align="left"
+            className="mb-0 lg:mb-0"
+          />
+          <div className="flex gap-2 self-start md:mb-4">
+            <span className="px-6 py-3 rounded-full border border-stone-300 text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 bg-white/50 backdrop-blur-sm">Drag to explore</span>
           </div>
         </div>
       </div>

@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import SectionHeader from './ui/SectionHeader';
 import { ArrowRight } from 'lucide-react';
 import InteractiveBookCard from './ui/InteractiveBookCard';
 
@@ -20,27 +19,19 @@ interface TrendingNowProps {
 }
 
 const TrendingNow: React.FC<TrendingNowProps> = ({ books, onAddToCart }) => {
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 50 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as any } }
-  };
-
   return (
-    <motion.section 
-      id="trending"
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: false, margin: "-100px" }}
-      className="py-32 bg-stone-950 text-white overflow-hidden"
-    >
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-        <div>
-          <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-4">Trending Now</h2>
-          <p className="text-stone-400 max-w-lg text-lg">Swipe through our most coveted editions of the season. Limited stock available.</p>
-        </div>
-        <button className="text-sm font-medium border-b border-white pb-1 hover:text-stone-300 hover:border-stone-300 transition-colors flex items-center gap-1 self-start md:self-auto">
-          Explore Collection <ArrowRight size={16} />
+    <section id="trending" className="py-32 lg:py-64 bg-stone-950 text-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-end justify-between mb-24 gap-12">
+        <SectionHeader 
+          eyebrow="Trending Collections"
+          title="Most"
+          subtitle="Coveted."
+          align="left"
+          theme="dark"
+          className="mb-0 lg:mb-0"
+        />
+        <button className="text-xs font-bold tracking-[0.3em] uppercase border-b border-white pb-2 hover:text-stone-300 hover:border-stone-300 transition-all flex items-center gap-2 self-start md:mb-4">
+          Explore Collection <ArrowRight size={14} />
         </button>
       </div>
 
@@ -60,7 +51,7 @@ const TrendingNow: React.FC<TrendingNowProps> = ({ books, onAddToCart }) => {
         {/* Empty element for padding at the end of scroll */}
         <div className="min-w-[24px] flex-shrink-0"></div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 

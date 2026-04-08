@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import InteractiveBookCard from './ui/InteractiveBookCard';
+import SectionHeader from './ui/SectionHeader';
 
 interface Book {
   id: number;
@@ -20,28 +20,19 @@ interface CuratedSelectionProps {
 }
 
 const CuratedSelection: React.FC<CuratedSelectionProps> = ({ books, onAddToCart }) => {
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 50 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as any } }
-  };
-
   return (
-    <motion.section 
-      id="curated"
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: false, margin: "-100px" }}
-      className="py-24 px-6 bg-white"
-    >
+    <section id="curated" className="py-32 lg:py-56 px-6 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-          <div>
-             <p className="text-stone-900 text-sm tracking-[0.2em] font-bold uppercase mb-4 opacity-80">Curated Selection</p>
-             <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-6 leading-[1.1] text-stone-900">Hand-picked volumes that challenge perspectives.</h2>
-          </div>
-          <button className="text-sm font-medium border-b border-stone-900 pb-1 hover:text-stone-500 hover:border-stone-500 transition-colors flex items-center gap-1 self-start md:self-auto">
-            View All Books <ChevronRight size={16} />
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-32 gap-12">
+          <SectionHeader 
+            eyebrow="Curated Selection"
+            title="Essential"
+            subtitle="Volumes."
+            align="left"
+            className="mb-0 lg:mb-0"
+          />
+          <button className="text-xs font-bold tracking-[0.3em] uppercase border-b border-stone-900 pb-2 hover:text-stone-500 hover:border-stone-500 transition-all flex items-center gap-2 self-start md:mb-4">
+            View All Books <ChevronRight size={14} />
           </button>
         </div>
 
@@ -60,7 +51,7 @@ const CuratedSelection: React.FC<CuratedSelectionProps> = ({ books, onAddToCart 
           ))}
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 

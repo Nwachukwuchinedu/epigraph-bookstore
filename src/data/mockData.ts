@@ -10,8 +10,44 @@ export const featuredBooks = [
 ];
 
 export const categories = [
-  { name: 'Art & Design', count: '124 Books', span: 'col-span-1 md:col-span-2', bg: 'bg-stone-100' },
-  { name: 'Philosophy', count: '86 Books', span: 'col-span-1', bg: 'bg-stone-800 text-white' },
-  { name: 'Contemporary Fiction', count: '312 Books', span: 'col-span-1', bg: 'bg-orange-50' },
-  { name: 'Science & Nature', count: '145 Books', span: 'col-span-1 md:col-span-2', bg: 'bg-emerald-50' },
+  { 
+    name: 'Art & Design', 
+    count: '124 Books', 
+    span: 'md:col-span-2 md:row-span-2', 
+    bg: 'bg-stone-50', 
+    tag: 'Featured Collection',
+    desc: 'Visual culture, architectural theory, and the evolution of modern aesthetics.'
+  },
+  { 
+    name: 'Philosophy', 
+    count: '86 Books', 
+    span: 'md:col-span-2 md:row-span-1', 
+    bg: 'bg-stone-900 text-white', 
+    tag: 'Essential Reading',
+    desc: 'Existential inquiries and the foundations of logic.'
+  },
+  { 
+    name: 'Fiction', 
+    count: '312 Books', 
+    span: 'md:col-span-1 md:row-span-1', 
+    bg: 'bg-orange-50', 
+    tag: 'Editorial Pick',
+    desc: 'Contemporary narratives.'
+  },
+  { 
+    name: 'Science', 
+    count: '145 Books', 
+    span: 'md:col-span-1 md:row-span-2', 
+    bg: 'bg-stone-100', 
+    tag: 'New Discoveries',
+    desc: 'Unlocking the natural world.'
+  },
+  { 
+    name: 'Poetry', 
+    count: '42 Books', 
+    span: 'md:col-span-1 md:row-span-1', 
+    bg: 'bg-stone-200', 
+    tag: 'Modern Verse',
+    desc: 'Rhythm and soul.'
+  },
 ];
