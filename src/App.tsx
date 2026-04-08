@@ -42,7 +42,7 @@ function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#FAFAFA] text-stone-900 font-sans selection:bg-stone-200 overflow-x-hidden">
+    <div className="w-full min-h-screen bg-[#FAFAFA] text-stone-900 font-sans selection:bg-stone-200">
       <FilmGrain />
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-stone-900 origin-left z-[100]"

@@ -1,11 +1,12 @@
-import React, { useRef, useEffect } from 'react';
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { useRef, useEffect, type FC, type MutableRefObject } from 'react';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import * as THREE from 'three';
 import { Layers, Glasses, BookMarked, Sparkles } from 'lucide-react';
 import { featuredBooks } from '../data/mockData';
 
 // --- HELPER: DYNAMIC TEXTURE GENERATOR ---
 const createBookTexture = (title: string, author: string, color: number) => {
+  if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 768;
@@ -17,29 +18,28 @@ const createBookTexture = (title: string, author: string, color: number) => {
   ctx.fillStyle = hex;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Spine effect (left shadow)
-  const gradient = ctx.createLinearGradient(0, 0, 50, 0);
-  gradient.addColorStop(0, 'rgba(0,0,0,0.3)');
+  // Spine effect
+  const gradient = ctx.createLinearGradient(0, 0, 60, 0);
+  gradient.addColorStop(0, 'rgba(0,0,0,0.4)');
   gradient.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 50, canvas.height);
+  ctx.fillRect(0, 0, 60, canvas.height);
 
   // Text Styling
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffffff'; // Off-white for readability
+  ctx.fillStyle = '#ffffff';
 
   // Title (Top)
-  ctx.font = '500 48px Inter, sans-serif';
+  ctx.font = '500 42px Inter, system-ui, sans-serif';
   const words = title.split(' ');
-  let y = 140;
+  let y = 180;
   let line = '';
   for (let n = 0; n < words.length; n++) {
     const testLine = line + words[n] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > 400 && n > 0) {
+    if (ctx.measureText(testLine).width > 420 && n > 0) {
       ctx.fillText(line.trim(), canvas.width / 2, y);
       line = words[n] + ' ';
-      y += 60;
+      y += 50;
     } else {
       line = testLine;
     }
@@ -47,46 +47,60 @@ const createBookTexture = (title: string, author: string, color: number) => {
   ctx.fillText(line.trim(), canvas.width / 2, y);
 
   // Author (Bottom)
-  ctx.font = '300 32px Inter, sans-serif';
-  ctx.globalAlpha = 0.8;
-  ctx.fillText(author.toUpperCase(), canvas.width / 2, canvas.height - 100);
+  ctx.font = '300 28px Inter, system-ui, sans-serif';
+  ctx.globalAlpha = 0.6;
+  ctx.fillText(author.toUpperCase(), canvas.width / 2, canvas.height - 140);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.anisotropy = 16;
   return texture;
 };
 
+interface ThreeBookStackProps { 
+  scrollProgress: any; 
+  hoveredCard: MutableRefObject<boolean>; 
+}
+
 // --- THREE.JS SCENE COMPONENT ---
-const ThreeBookStack = ({ scrollProgress, hoveredCard }: { scrollProgress: any; hoveredCard: React.MutableRefObject<boolean> }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+const ThreeBookStack: FC<ThreeBookStackProps> = ({ scrollProgress, hoveredCard }) => {
+  const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!mountRef.current) return;
+    
+    // Fix 1: Cache scrollProgress in a ref for smooth updates in Three.js
+    const progressRef = { current: scrollProgress.get() };
+    const unsubscribe = scrollProgress.on("change", (v: number) => {
+      progressRef.current = v;
+    });
+
+    // Fix 3: Reuse vectors/quaternions outside the loop to prevent GC spikes
+    const tempVec = new THREE.Vector3();
+    const tempQuat1 = new THREE.Quaternion();
+    const tempQuat2 = new THREE.Quaternion();
+    const tempQuat3 = new THREE.Quaternion();
 
     // 1. Scene Setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#fafafa');
 
-    const camera = new THREE.PerspectiveCamera(40, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 100);
-    camera.position.set(0, 3, 10);
+    // Fix 4: Guard canvas size for initial render
+    const width = mountRef.current.clientWidth || window.innerWidth;
+    const height = mountRef.current.clientHeight || window.innerHeight;
+    const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
+    camera.position.set(0, 5, 14); 
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    containerRef.current.appendChild(renderer.domElement);
+    mountRef.current.appendChild(renderer.domElement);
 
     // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
-    const softLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    softLight.position.set(5, 10, 5);
-    scene.add(softLight);
-
-    const fillLight = new THREE.PointLight(0xffffff, 0.5);
-    fillLight.position.set(-5, -5, 5);
-    scene.add(fillLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const light = new THREE.DirectionalLight(0xffffff, 1.5);
+    light.position.set(10, 20, 10);
+    scene.add(light);
 
     // 3. Groups
     const presentationGroup = new THREE.Group();
@@ -95,119 +109,70 @@ const ThreeBookStack = ({ scrollProgress, hoveredCard }: { scrollProgress: any; 
     const floatGroup = new THREE.Group();
     presentationGroup.add(floatGroup);
 
-    // 4. Books (Using Real Data & Non-Intersecting Stacks)
+    // 4. Books
     const books: THREE.Mesh[] = [];
     const booksData: any[] = [];
     
-    // Core color matching from featuredBooks palette strings
     const colors = [0x1c1917, 0xfb923c, 0x059669, 0x78716c, 0x1e1b4b, 0xb45309, 0x155e75, 0xe11d48];
-
-    let currentY = -2; // Start from bottom
-    const totalBooks = featuredBooks.length;
+    
+    let cumulativeHeight = -1.8; // Lower start point
 
     featuredBooks.forEach((book, i) => {
-      const thickness = 0.18 + Math.random() * 0.15;
-      const width = 1.6 + Math.random() * 0.3;
-      const height = 2.4 + Math.random() * 0.2;
+      const thickness = 0.22 + Math.random() * 0.1;
+      const width = 1.7;
+      const height = 2.5;
 
-      // Materials: Multi-material for front cover and sides
       const coverTexture = createBookTexture(book.title, book.author, colors[i % colors.length]);
-      const coverMat = new THREE.MeshPhysicalMaterial({ 
-        map: coverTexture, 
-        roughness: 0.3, 
-        metalness: 0.1,
-        clearcoat: 0.2
-      });
-      const sideMat = new THREE.MeshPhysicalMaterial({ 
-        color: 0xffffff, // Paper edges
-        roughness: 0.8 
-      });
+      const coverMat = new THREE.MeshPhysicalMaterial({ map: coverTexture, roughness: 0.4, metalness: 0.1 });
+      const paperMat = new THREE.MeshPhysicalMaterial({ color: 0xeeeeee, roughness: 0.8 });
 
+      // BoxGeometry(x:width, y:height, z:thickness)
       const geom = new THREE.BoxGeometry(width, height, thickness);
-      
-      // Face logic: front(4) and back(5) use cover texture, others use sideMat
-      const materials = [
-        sideMat, sideMat, sideMat, sideMat, coverMat, coverMat
-      ];
+      const materials = [paperMat, paperMat, paperMat, paperMat, coverMat, coverMat];
 
       const mesh = new THREE.Mesh(geom, materials);
       floatGroup.add(mesh);
       books.push(mesh);
 
-      // Collision-Free Stacking Logic
-      const stackY = currentY + thickness / 2;
-      currentY += thickness + 0.02; // Small gap for realism
+      // --- STACKING POSITION (FLAT PILE) ---
+      // We rotate -PI/2 on X. thickness (z) becomes vertical extent.
+      const stackY = cumulativeHeight + thickness / 2;
+      cumulativeHeight += thickness + 0.15; // GENEROS GAP TO PREVENT MERGING
 
-      const angle = (i / totalBooks) * Math.PI * 2;
-      const radius = 3.5;
-      const orbitY = (Math.random() - 0.5) * 5;
+      const angle = (i / featuredBooks.length) * Math.PI * 2;
+      const radius = 5.0;
 
       booksData.push({
-        stackPos: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.3, // Slight jitter in x
-          stackY, 
-          (Math.random() - 0.5) * 0.3  // Slight jitter in z
-        ),
-        stackRot: new THREE.Euler(
-          -Math.PI / 2, // Laying flat
-          0, 
-          (Math.random() - 0.5) * 0.4 // Slight rotation jitter
-        ),
-        orbitPos: new THREE.Vector3(Math.cos(angle) * radius, orbitY, Math.sin(angle) * radius),
-        orbitRot: new THREE.Euler(Math.random() * Math.PI, angle + Math.PI / 2, Math.random() * 0.5)
+        stackPos: new THREE.Vector3((Math.random() - 0.5) * 0.3, stackY, (Math.random() - 0.5) * 0.3),
+        stackRot: new THREE.Euler(-Math.PI / 2, 0, (Math.random() - 0.5) * 0.4),
+        orbitPos: new THREE.Vector3(Math.cos(angle) * radius, (Math.random() - 0.5) * 6, Math.sin(angle) * radius),
+        orbitRot: new THREE.Euler(Math.random() * Math.PI, angle + Math.PI / 2, Math.random() * Math.PI)
       });
     });
-
-    // 5. Interaction
-    let mX = 0, mY = 0, tMX = 0, tMY = 0;
-    const onMM = (e: MouseEvent) => {
-      const rect = containerRef.current!.getBoundingClientRect();
-      tMX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      tMY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    };
-    window.addEventListener('mousemove', onMM);
-
-    const onRes = () => {
-      if (!containerRef.current) return;
-      camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    };
-    window.addEventListener('resize', onRes);
 
     const clock = new THREE.Clock();
     let animId: number;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const delta = Math.min(clock.getDelta(), 0.1);
+      // Fix: Clamp s to ensure it stays in 0-1 range
+      const s = Math.min(Math.max(progressRef.current, 0), 1);
       const elapsed = clock.getElapsedTime();
-      const s = scrollProgress.get();
-      const isH = hoveredCard.current;
 
-      mX += (tMX - mX) * 0.05;
-      mY += (tMY - mY) * 0.05;
-
-      presentationGroup.rotation.x += (-mY * 0.1 - presentationGroup.rotation.x) * 0.05;
-      presentationGroup.rotation.y += (mX * 0.1 - presentationGroup.rotation.y) * 0.05;
-
-      floatGroup.rotation.y += (isH ? 0.8 : 0.2) * delta;
-      floatGroup.position.y = Math.sin(elapsed * 0.8) * 0.1;
+      floatGroup.rotation.y += (hoveredCard.current ? 1.0 : 0.1) * 0.01;
 
       books.forEach((book, i) => {
         const data = booksData[i];
         
-        // Position
-        const targetPos = new THREE.Vector3().copy(data.stackPos).lerp(data.orbitPos, s);
-        const bob = Math.sin(elapsed * 1.2 + i) * 0.1 * s;
-        targetPos.y += bob;
-        book.position.lerp(targetPos, 0.08);
+        // Fix 3 continued: Use reused objects for interpolation
+        tempVec.copy(data.stackPos).lerp(data.orbitPos, s);
+        tempVec.y += Math.sin(elapsed * 1.2 + i) * 0.05; // Float bob
+        book.position.lerp(tempVec, 0.1);
 
-        // Rotation
-        const q1 = new THREE.Quaternion().setFromEuler(data.stackRot);
-        const q2 = new THREE.Quaternion().setFromEuler(data.orbitRot);
-        const tQ = new THREE.Quaternion().copy(q1).slerp(q2, s);
-        book.quaternion.slerp(tQ, 0.08);
+        tempQuat1.setFromEuler(data.stackRot);
+        tempQuat2.setFromEuler(data.orbitRot);
+        tempQuat3.copy(tempQuat1).slerp(tempQuat2, s);
+        book.quaternion.slerp(tempQuat3, 0.1);
       });
 
       renderer.render(scene, camera);
@@ -215,16 +180,24 @@ const ThreeBookStack = ({ scrollProgress, hoveredCard }: { scrollProgress: any; 
 
     animate();
 
+    const onRes = () => {
+      if (!mountRef.current) return;
+      camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    };
+    window.addEventListener('resize', onRes);
+
     return () => {
-      window.removeEventListener('mousemove', onMM);
       window.removeEventListener('resize', onRes);
       cancelAnimationFrame(animId);
+      unsubscribe();
       renderer.dispose();
-      if (containerRef.current) containerRef.current.innerHTML = '';
+      if (mountRef.current) mountRef.current.innerHTML = '';
     };
   }, [scrollProgress]);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return <div ref={mountRef} className="w-full h-full relative" />;
 };
 
 // --- BENTO CARD COMPONENT ---
@@ -236,119 +209,129 @@ const BentoCard = ({ title, subtitle, desc, icon: Icon, delay, setHovered }: any
     transition={{ duration: 1.2, delay, ease: [0.16, 1, 0.3, 1] }}
     onMouseEnter={() => setHovered(true)}
     onMouseLeave={() => setHovered(false)}
-    className="group relative overflow-hidden rounded-[2.5rem] bg-stone-50/50 backdrop-blur-sm border border-stone-200 p-10 lg:p-12 transition-all duration-700 hover:shadow-[0_40px_80px_rgba(0,0,0,0.04)] flex flex-col justify-between min-h-[400px]"
+    className="group relative overflow-hidden rounded-[2.5rem] bg-white/40 backdrop-blur-xl border border-stone-200/50 p-10 lg:p-14 transition-all duration-700 hover:bg-white/60 hover:shadow-[0_40px_80px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[500px]"
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-stone-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+    <div className="absolute inset-0 bg-gradient-to-br from-stone-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
     
-    <div className="flex justify-between items-start mb-20 relative z-10">
-      <span className="text-stone-400 text-xs tracking-[0.3em] uppercase font-medium">{subtitle}</span>
-      <div className="p-4 rounded-full bg-white border border-stone-100 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500 shadow-sm">
-        <Icon className="transition-colors duration-500" size={24} strokeWidth={1.5} />
+    <div className="flex justify-between items-start mb-24 relative z-10">
+      <span className="text-stone-400 text-xs tracking-[0.4em] uppercase font-semibold">{subtitle}</span>
+      <div className="p-5 rounded-full bg-white border border-stone-100 group-hover:bg-stone-900 group-hover:text-white transition-all duration-500 shadow-sm">
+        <Icon size={28} strokeWidth={1.5} />
       </div>
     </div>
     
     <div className="relative z-10">
-      <h3 className="text-3xl lg:text-4xl font-medium tracking-tight text-stone-900 mb-6">{title}</h3>
-      <p className="text-stone-500/80 text-lg leading-relaxed max-w-sm">
+      <h3 className="text-4xl lg:text-7xl font-medium tracking-tighter text-stone-900 mb-8 leading-[1]">{title}</h3>
+      <p className="text-stone-500/90 text-2xl leading-relaxed max-w-sm font-light">
         {desc}
       </p>
     </div>
   </motion.div>
 );
 
-const BookStackSection: React.FC = () => {
+const BookStackSection: FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use scroll with window container for maximum stability, targeted to this section's bounds
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
+
+  useEffect(() => {
+    return scrollYProgress.on("change", (v) => {
+      console.log("Archive scroll progress:", v);
+    });
+  }, [scrollYProgress]);
   
-  const smoothProgress = useSpring(scrollYProgress, { damping: 30, stiffness: 50 });
+  const smoothProgress = useSpring(scrollYProgress, { damping: 50, stiffness: 70 });
   const hoveredCard = useRef(false);
   const setHovered = (val: boolean) => { hoveredCard.current = val; };
 
   return (
-    <div ref={containerRef} className="relative w-full bg-[#fafafa]">
+    <section 
+      ref={containerRef} 
+      id="archives"
+      className="relative w-full bg-[#fafafa]"
+      style={{ minHeight: '200vh' }} // Fix: Moderate height for 3D transition
+    >
       <div className="flex flex-col lg:flex-row w-full relative">
         
-        {/* Left: Sticky 3D Canvas */}
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-screen sticky top-0 z-0 overflow-hidden bg-stone-50/30">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(250,250,250,0)_0%,rgba(220,220,220,0.3)_100%)] pointer-events-none z-10" />
-          
-          <ThreeBookStack scrollProgress={smoothProgress} hoveredCard={hoveredCard} />
-          
-          <div className="absolute top-12 left-12 z-20 pointer-events-none">
-            <h2 className="text-stone-900 text-sm tracking-[0.4em] font-medium uppercase">Epigraph Archive</h2>
-            <p className="text-stone-400 text-xs tracking-widest mt-2">Physical Exploration v2.0</p>
+        {/* Fix 5: Simplified sticky wrapper for better scroll tracking */}
+        <div className="w-full lg:w-1/2">
+          <div className="sticky top-0 h-screen z-0 overflow-hidden bg-stone-50/5">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_50%,rgba(250,250,250,0)_0%,rgba(220,220,220,0.3)_100%)] pointer-events-none z-10" />
+            
+            <ThreeBookStack scrollProgress={smoothProgress} hoveredCard={hoveredCard} />
+            
+            <div className="absolute top-16 left-16 z-20 pointer-events-none">
+              <h2 className="text-stone-900 text-sm tracking-[0.5em] font-bold uppercase opacity-20">Archives</h2>
+              <div className="h-px w-16 bg-stone-200 mt-4 rounded-full" />
+            </div>
           </div>
         </div>
 
-        {/* Right: Scrolling Bento Content */}
-        <div className="w-full lg:w-1/2 relative z-10 px-6 py-24 lg:px-20 lg:py-48">
-          <div className="max-w-xl mx-auto flex flex-col gap-12 lg:gap-16">
+        {/* Right: Scrolling Bento Section */}
+        <div className="w-full lg:w-1/2 relative z-10 px-6 py-32 lg:px-24 lg:py-80 flex flex-col">
+          <div className="max-w-2xl mx-auto flex flex-col gap-20 lg:gap-40">
             
             <motion.div 
-              initial={{ opacity: 0, filter: "blur(10px)" }}
-              whileInView={{ opacity: 1, filter: "blur(0px)" }}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="mb-12 lg:mb-20"
+              transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-12"
             >
-              <h2 className="text-5xl lg:text-7xl font-medium tracking-tighter mb-8 leading-[1.05] text-stone-900">
-                The architecture <br/>
-                <span className="italic text-stone-400 font-light text-zinc-400">of literary form.</span>
+              <h2 className="text-6xl lg:text-[10rem] font-medium tracking-tighter mb-16 leading-[0.85] text-stone-900">
+                Luminous <br/>
+                <span className="italic text-stone-300 font-light selection:text-white">Form.</span>
               </h2>
-              <p className="text-stone-500 text-xl max-w-md leading-relaxed">
-                Experience literature as a structural phenomenon. Our digital archive preserves the tactile weight of the written word.
+              <p className="text-stone-400 text-3xl max-w-md font-light leading-snug tracking-tight">
+                Simulating the tactile weight of literature through structural deconstruction.
               </p>
             </motion.div>
 
-            <div className="flex flex-col gap-8 lg:gap-12">
-              
+            <div className="flex flex-col gap-16 lg:gap-32">
               <BentoCard 
-                title="Curated Vault"
-                subtitle="01 // Collection"
+                title="The Vault"
+                subtitle="01 // Edition"
                 desc="Discover rare editions, meticulously selected for the modern intellectual and bibliophile."
                 icon={Layers}
                 delay={0.1}
                 setHovered={setHovered}
               />
-
               <BentoCard 
-                title="Tactile Philosophy"
-                subtitle="02 // Matter"
-                desc="Bridging the gap between the ephemeral digital plane and the eternal weight of bound matter."
+                title="Tactility"
+                subtitle="02 // Weight"
+                desc="Bridging the gap between the ephemeral digital plane and the eternal weight of matter."
                 icon={Glasses}
                 delay={0.2}
                 setHovered={setHovered}
               />
-
               <BentoCard 
-                title="Volumetric Story"
-                subtitle="03 // Structure"
-                desc="Every book is a world with depth. We visualize narratives as architectural constructs."
+                title="Volumetric"
+                subtitle="03 // Depth"
+                desc="Every book is a world with structural depth. We visualize narratives as architecture."
                 icon={Sparkles}
                 delay={0.3}
                 setHovered={setHovered}
               />
-              
               <BentoCard 
-                title="Editorial Journal"
+                title="Journal"
                 subtitle="04 // Insights"
                 desc="Access in-depth analyses and designer insights into the preservation of modern thought."
                 icon={BookMarked}
                 delay={0.4}
                 setHovered={setHovered}
               />
-
             </div>
             
-            <div className="h-[20vh]" />
+            <div className="h-[50vh]" />
           </div>
         </div>
 
       </div>
-    </div>
+    </section>
   );
 };
 
