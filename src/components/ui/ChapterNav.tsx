@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 
 const ChapterNav: React.FC = () => {
-  const sections = ['hero', 'curated', 'trending', 'archives', 'explore', 'spotlight', 'quote', 'services'];
+  const sections = ['hero', 'curated', 'trending', 'shelf', 'archives', 'explore', 'spotlight', 'quote', 'services'];
   const [active, setActive] = useState('hero');
 
   useEffect(() => {
     const handleScroll = () => {
-      let current = 'hero';
+      let current = active; // Use current active as default to avoid jumps to hero
+      
+      const vCenter = window.innerHeight / 2;
+      
       sections.forEach((id) => {
         const el = document.getElementById(id);
         if (el) {
           const rect = el.getBoundingClientRect();
-          // If the section is spanning the middle of the viewport
-          if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+          // If the section covers the viewport center
+          if (rect.top <= vCenter && rect.bottom >= vCenter) {
             current = id;
           }
         }

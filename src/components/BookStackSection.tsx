@@ -238,11 +238,6 @@ const BookStackSection: FC = () => {
     offset: ["start start", "end end"]
   });
 
-  useEffect(() => {
-    return scrollYProgress.on("change", (v) => {
-      console.log("Archive scroll progress:", v);
-    });
-  }, [scrollYProgress]);
   
   const smoothProgress = useSpring(scrollYProgress, { damping: 50, stiffness: 70 });
   const hoveredCard = useRef(false);
@@ -258,7 +253,7 @@ const BookStackSection: FC = () => {
       <div className="flex flex-col lg:flex-row w-full relative">
         
         {/* Fix 5: Simplified sticky wrapper for better scroll tracking */}
-        <div className="w-full lg:w-1/2">
+        <div className="w-full lg:w-1/2 relative">
           <div className="sticky top-0 h-screen z-0 overflow-hidden bg-stone-50/5">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_50%,rgba(250,250,250,0)_0%,rgba(220,220,220,0.3)_100%)] pointer-events-none z-10" />
             

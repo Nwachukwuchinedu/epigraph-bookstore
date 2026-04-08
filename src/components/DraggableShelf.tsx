@@ -39,12 +39,12 @@ const DraggableShelf: React.FC<DraggableShelfProps> = ({ books, onAddToCart }) =
   }, []);
 
   return (
-    <section id="archives" className="py-32 bg-stone-100 overflow-hidden relative cursor-grab active:cursor-grabbing">
+    <section id="shelf" className="py-32 bg-stone-100 overflow-hidden relative cursor-grab active:cursor-grabbing">
       <div className="max-w-7xl mx-auto px-6 mb-16">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-4 text-stone-900">The Archives</h2>
-            <p className="text-stone-500 max-w-lg text-lg">Fling through our catalog. A physics-based draggable shelf powered by momentum.</p>
+            <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-4 text-stone-900">Momentum Shelf</h2>
+            <p className="text-stone-500 max-w-lg text-lg">Fling through our catalog. A physics-based draggable gallery powered by momentum.</p>
           </div>
           <div className="flex gap-2">
             <span className="px-4 py-2 rounded-full border border-stone-300 text-xs font-medium uppercase tracking-widest text-stone-500">Drag to explore</span>

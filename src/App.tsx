@@ -42,7 +42,7 @@ function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#FAFAFA] text-stone-900 font-sans selection:bg-stone-200">
+    <div className="relative w-full min-h-screen bg-[#FAFAFA] text-stone-900 font-sans selection:bg-stone-200">
       <FilmGrain />
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-stone-900 origin-left z-[100]"
@@ -60,6 +60,7 @@ function App() {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -20, filter: "blur(5px)" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="relative"
           >
             <HeroSection />
             <MarqueeSection />
