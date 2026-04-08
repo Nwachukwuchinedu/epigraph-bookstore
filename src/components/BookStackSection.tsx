@@ -307,7 +307,7 @@ const BookStackSection: FC = () => {
                 title="Luminous"
                 subtitle="Form."
                 align="left"
-                className="mb-0 lg:mb-0"
+                className="mb-0 lg:mb-0 scale-90 origin-left lg:scale-100"
               />
               <div className="max-w-md mt-16">
                 <p className="text-stone-500 text-3xl font-light leading-snug tracking-tight mb-8">

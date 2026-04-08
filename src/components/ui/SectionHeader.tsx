@@ -43,7 +43,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className={`text-7xl md:text-8xl lg:text-[12rem] font-medium tracking-[-0.05em] leading-[0.8] ${isDark ? 'text-white' : 'text-stone-900'}`}
+          className={`text-6xl md:text-8xl lg:text-[min(10vw,9rem)] font-medium tracking-[-0.05em] leading-[0.8] ${isDark ? 'text-white' : 'text-stone-900'}`}
         >
           {title}
         </motion.span>
