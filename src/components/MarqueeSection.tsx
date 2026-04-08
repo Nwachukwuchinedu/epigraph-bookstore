@@ -6,7 +6,8 @@ const MarqueeSection: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   
   useAnimationFrame((_t, delta) => {
-    let moveBy = (isHovered ? 1 : -1) * 0.02 * delta;
+    // Significantly slower glide for premium feel
+    let moveBy = (isHovered ? 0.2 : -1) * 0.005 * delta;
     let newX = baseX.get() + moveBy;
     if (newX <= -50) newX += 50;
     if (newX >= 0) newX -= 50;
