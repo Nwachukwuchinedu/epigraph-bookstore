@@ -43,7 +43,7 @@ const DraggableShelf: React.FC<DraggableShelfProps> = ({ books, onAddToCart }) =
       <div className="max-w-7xl mx-auto px-6 mb-16">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-4">The Archives</h2>
+            <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-4 text-stone-900">The Archives</h2>
             <p className="text-stone-500 max-w-lg text-lg">Fling through our catalog. A physics-based draggable shelf powered by momentum.</p>
           </div>
           <div className="flex gap-2">

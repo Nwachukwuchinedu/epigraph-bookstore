@@ -284,9 +284,9 @@ const BookStackSection: FC = () => {
             >
               <h2 className="text-6xl lg:text-[10rem] font-medium tracking-tighter mb-16 leading-[0.85] text-stone-900">
                 Luminous <br/>
-                <span className="italic text-stone-300 font-light selection:text-white">Form.</span>
+                <span className="italic text-stone-400 font-light selection:text-white">Form.</span>
               </h2>
-              <p className="text-stone-400 text-3xl max-w-md font-light leading-snug tracking-tight">
+              <p className="text-stone-500 text-3xl max-w-md font-light leading-snug tracking-tight">
                 Simulating the tactile weight of literature through structural deconstruction.
               </p>
             </motion.div>
